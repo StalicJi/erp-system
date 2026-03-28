@@ -17,6 +17,7 @@ import {
   ClipboardList,
   Settings,
   SlidersHorizontal,
+  Home,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -29,6 +30,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  {
+    href: "/home",
+    label: "首頁",
+    icon: Home,
+  },
   {
     href: "/employees",
     label: "員工管理",
@@ -126,7 +132,7 @@ export default function Sidebar() {
             onClick={() => setMobileOpen(false)}
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              pathname.startsWith(href)
+              pathname === href || (href !== "/" && pathname.startsWith(href))
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}

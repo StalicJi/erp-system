@@ -1,4 +1,4 @@
-import { Employee, Department, Project, Permission } from '@/types'
+import { Employee, Department, Project, Permission, Announcement } from '@/types'
 
 const now = new Date().toISOString()
 
@@ -313,6 +313,7 @@ export const DEFAULT_PROJECTS: Project[] = [
     name: 'ERP 系統開發',
     description: '公司內部 ERP 系統建置與維護',
     departmentId: 'dept-it',
+    managerId: 'emp-it-mgr',
     status: 'active',
     createdAt: now,
     updatedAt: now,
@@ -322,6 +323,7 @@ export const DEFAULT_PROJECTS: Project[] = [
     name: '行動應用程式',
     description: '客戶端行動 App 開發',
     departmentId: 'dept-it',
+    managerId: 'emp-it-mgr',
     status: 'active',
     createdAt: now,
     updatedAt: now,
@@ -331,6 +333,7 @@ export const DEFAULT_PROJECTS: Project[] = [
     name: 'Q2 業務推廣',
     description: '第二季業務拓展計畫',
     departmentId: 'dept-sales',
+    managerId: 'emp-sales-mgr',
     status: 'active',
     createdAt: now,
     updatedAt: now,
@@ -340,8 +343,32 @@ export const DEFAULT_PROJECTS: Project[] = [
     name: '人才招募計畫',
     description: '年度人才招募與培訓',
     departmentId: 'dept-hr',
+    managerId: 'emp-hr-mgr',
     status: 'active',
     createdAt: now,
     updatedAt: now,
+  },
+]
+
+// ─── Announcements ───────────────────────────────────────────────
+
+export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
+  {
+    id: 'ann-1',
+    title: '歡迎使用 ERP 系統',
+    content: '本系統提供員工管理、專案追蹤、工作日報等功能，如有任何問題請聯絡資訊部。',
+    authorId: 'emp-boss',
+    authorName: '林總經理',
+    pinned: true,
+    createdAt: now,
+  },
+  {
+    id: 'ann-2',
+    title: '三月份全體員工會議通知',
+    content: '請全體員工於本月最後一個工作天下午 3 點至會議室參加月度例會，請準時出席。',
+    authorId: 'emp-hr-mgr',
+    authorName: '陳淑芬',
+    pinned: false,
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
   },
 ]

@@ -72,9 +72,33 @@ export interface Project {
   name: string
   description: string
   departmentId: string
+  managerId?: string
   status: 'active' | 'completed' | 'paused'
   createdAt: string
   updatedAt: string
+}
+
+export interface Announcement {
+  id: string
+  title: string
+  content: string
+  authorId: string
+  authorName: string
+  pinned: boolean
+  createdAt: string
+}
+
+export interface CalendarEvent {
+  id: string
+  title: string
+  date: string
+  type: 'work' | 'todo' | 'meeting'
+  description: string
+  assignedToId?: string
+  createdById: string
+  projectId?: string
+  completed: boolean
+  createdAt: string
 }
 
 export interface DailyReport {

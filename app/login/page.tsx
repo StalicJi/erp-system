@@ -29,7 +29,7 @@ export default function LoginPage() {
     const success = login(employeeNumber.trim(), password);
     if (success) {
       toast.success("登入成功");
-      router.push("/employees");
+      router.push("/home");
     } else {
       toast.error("帳號或密碼錯誤，或帳號已停用");
     }

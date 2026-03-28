@@ -57,6 +57,7 @@ type ProjectForm = {
   name: string;
   description: string;
   departmentId: string;
+  managerId: string;
   status: Project["status"];
 };
 
@@ -64,6 +65,7 @@ const EMPTY_FORM: ProjectForm = {
   name: "",
   description: "",
   departmentId: "",
+  managerId: "",
   status: "active",
 };
 
@@ -167,6 +169,7 @@ export default function ProjectsPage() {
       name: proj.name,
       description: proj.description,
       departmentId: proj.departmentId,
+      managerId: proj.managerId ?? "",
       status: proj.status,
     });
     setDialogOpen(true);
@@ -177,11 +180,15 @@ export default function ProjectsPage() {
       toast.error("請填寫專案名稱與所屬部門");
       return;
     }
+    const payload = {
+      ...form,
+      managerId: form.managerId || undefined,
+    };
     if (editTarget) {
-      updateProject(editTarget.id, form);
+      updateProject(editTarget.id, payload);
       toast.success("專案已更新");
     } else {
-      addProject(form);
+      addProject(payload);
       toast.success("專案已新增");
     }
     setDialogOpen(false);
@@ -383,6 +390,7 @@ export default function ProjectsPage() {
                 <TableRow className="bg-muted/40">
                   <TableHead>專案名稱</TableHead>
                   <TableHead>所屬部門</TableHead>
+                  <TableHead>專案經理</TableHead>
                   <TableHead>狀態</TableHead>
                   <TableHead className="text-right">日報筆數</TableHead>
                   <TableHead className="text-right">累計工時</TableHead>
@@ -423,6 +431,11 @@ export default function ProjectsPage() {
                         <Badge variant="outline" className="text-xs">
                           {dept?.name ?? "—"}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-slate-600">
+                        {proj.managerId
+                          ? employees.find((e) => e.id === proj.managerId)?.name ?? "—"
+                          : "—"}
                       </TableCell>
                       <TableCell>
                         <Badge variant={st.variant} className="text-xs">
@@ -575,6 +588,29 @@ export default function ProjectsPage() {
                     {d.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>專案經理</Label>
+              <select
+                className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                value={form.managerId}
+                onChange={(e) => set("managerId", e.target.value)}
+              >
+                <option value="">無</option>
+                {employees
+                  .filter(
+                    (e) =>
+                      e.status === "active" &&
+                      (form.departmentId
+                        ? e.departmentIds.includes(form.departmentId)
+                        : true)
+                  )
+                  .map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name} — {e.position}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="space-y-1.5">

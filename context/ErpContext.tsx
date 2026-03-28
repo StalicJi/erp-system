@@ -3,9 +3,10 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import {
   Employee, Department, Project, DailyReport, AuditLog, AppSettings, AuthUser, Permission,
+  Announcement, CalendarEvent,
   DEFAULT_APP_SETTINGS,
 } from '@/types'
-import { DEFAULT_EMPLOYEES, DEFAULT_DEPARTMENTS, DEFAULT_PROJECTS } from '@/lib/data'
+import { DEFAULT_EMPLOYEES, DEFAULT_DEPARTMENTS, DEFAULT_PROJECTS, DEFAULT_ANNOUNCEMENTS } from '@/lib/data'
 
 interface ErpContextType {
   // Auth
@@ -44,6 +45,18 @@ interface ErpContextType {
   // Audit Logs
   auditLogs: AuditLog[]
 
+  // Announcements
+  announcements: Announcement[]
+  addAnnouncement: (a: Omit<Announcement, 'id' | 'createdAt'>) => void
+  deleteAnnouncement: (id: string) => void
+  toggleAnnouncementPin: (id: string) => void
+
+  // Calendar Events
+  calendarEvents: CalendarEvent[]
+  addCalendarEvent: (e: Omit<CalendarEvent, 'id' | 'createdAt'>) => void
+  updateCalendarEvent: (id: string, e: Partial<CalendarEvent>) => void
+  deleteCalendarEvent: (id: string) => void
+
   // Settings
   appSettings: AppSettings
   updateAppSettings: (s: Partial<AppSettings>) => void
@@ -59,6 +72,8 @@ const SK = {
   auditLogs: 'erp_audit_logs',
   settings: 'erp_app_settings',
   currentUser: 'erp_current_user',
+  announcements: 'erp_announcements',
+  calendarEvents: 'erp_calendar_events',
 }
 
 function genId(prefix: string) {
@@ -83,6 +98,8 @@ export function ErpProvider({ children }: { children: React.ReactNode }) {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [appSettings, setAppSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([])
   const [hydrated, setHydrated] = useState(false)
 
   // Keep a stable ref to current state for use inside callbacks without stale closure issues
@@ -98,6 +115,8 @@ export function ErpProvider({ children }: { children: React.ReactNode }) {
     setAuditLogs(load(SK.auditLogs, []))
     setAppSettings(load(SK.settings, DEFAULT_APP_SETTINGS))
     setCurrentUser(load(SK.currentUser, null))
+    setAnnouncements(load(SK.announcements, DEFAULT_ANNOUNCEMENTS))
+    setCalendarEvents(load(SK.calendarEvents, []))
     setHydrated(true)
   }, [])
 
@@ -108,6 +127,8 @@ export function ErpProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { if (hydrated) localStorage.setItem(SK.dailyReports, JSON.stringify(dailyReports)) }, [dailyReports, hydrated])
   useEffect(() => { if (hydrated) localStorage.setItem(SK.auditLogs, JSON.stringify(auditLogs)) }, [auditLogs, hydrated])
   useEffect(() => { if (hydrated) localStorage.setItem(SK.settings, JSON.stringify(appSettings)) }, [appSettings, hydrated])
+  useEffect(() => { if (hydrated) localStorage.setItem(SK.announcements, JSON.stringify(announcements)) }, [announcements, hydrated])
+  useEffect(() => { if (hydrated) localStorage.setItem(SK.calendarEvents, JSON.stringify(calendarEvents)) }, [calendarEvents, hydrated])
 
   // ── Audit helper ───────────────────────────────────────────────────────────
   const addAuditLog = useCallback((action: string, target: string, detail: string) => {
@@ -348,6 +369,41 @@ export function ErpProvider({ children }: { children: React.ReactNode }) {
     addAuditLog('刪除日報', '工作日報', `刪除日報 ID：${id}`)
   }, [addAuditLog])
 
+  // ── Announcements ─────────────────────────────────────────────────────────
+  const addAnnouncement = useCallback((a: Omit<Announcement, 'id' | 'createdAt'>) => {
+    const entry: Announcement = { ...a, id: genId('ann'), createdAt: new Date().toISOString() }
+    setAnnouncements(prev => [entry, ...prev])
+    addAuditLog('發佈公告', '公司公告', `發佈公告：${a.title}`)
+  }, [addAuditLog])
+
+  const deleteAnnouncement = useCallback((id: string) => {
+    setAnnouncements(prev => {
+      const ann = prev.find(a => a.id === id)
+      addAuditLog('刪除公告', '公司公告', `刪除公告：${ann?.title ?? id}`)
+      return prev.filter(a => a.id !== id)
+    })
+  }, [addAuditLog])
+
+  const toggleAnnouncementPin = useCallback((id: string) => {
+    setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, pinned: !a.pinned } : a))
+  }, [])
+
+  // ── Calendar Events ───────────────────────────────────────────────────────
+  const addCalendarEvent = useCallback((e: Omit<CalendarEvent, 'id' | 'createdAt'>) => {
+    const entry: CalendarEvent = { ...e, id: genId('evt'), createdAt: new Date().toISOString() }
+    setCalendarEvents(prev => [...prev, entry])
+    addAuditLog('新增行事曆', '行事曆', `新增：${e.title}（${e.date}）`)
+  }, [addAuditLog])
+
+  const updateCalendarEvent = useCallback((id: string, updates: Partial<CalendarEvent>) => {
+    setCalendarEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e))
+  }, [])
+
+  const deleteCalendarEvent = useCallback((id: string) => {
+    setCalendarEvents(prev => prev.filter(e => e.id !== id))
+    addAuditLog('刪除行事曆', '行事曆', `刪除行事曆事件 ID：${id}`)
+  }, [addAuditLog])
+
   // ── Settings ──────────────────────────────────────────────────────────────
   const updateAppSettings = useCallback((updates: Partial<AppSettings>) => {
     setAppSettings(p => ({ ...p, ...updates }))
@@ -366,6 +422,8 @@ export function ErpProvider({ children }: { children: React.ReactNode }) {
       projects, addProject, updateProject, deleteProject,
       dailyReports, addDailyReport, updateDailyReport, deleteDailyReport,
       auditLogs,
+      announcements, addAnnouncement, deleteAnnouncement, toggleAnnouncementPin,
+      calendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent,
       appSettings, updateAppSettings,
     }}>
       {children}
