@@ -125,6 +125,21 @@
     @apply bg-background text-foreground;
   }
   html {
+    font-size: calc(16px * var(--app-font-scale, 1));
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .dark .text-slate-800 {
+    color: #fff;
+  }
+
+  .dark .text-slate-600 {
+    color: #fff;
+  }
+
+  .dark .text-slate-500 {
+    color: #cbd5e1;
   }
 }
